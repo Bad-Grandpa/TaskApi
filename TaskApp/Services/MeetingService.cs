@@ -7,6 +7,15 @@ using TaskApp.Data.Models;
 
 namespace TaskApp.Services
 {
+    //should be in contrl
+    public class MeetingNotFoundException : Exception 
+    {
+           public MeetingNotFoundException() { }
+    }
+    public class MeetingFullException : Exception
+    {
+        public MeetingFullException() { }
+    }
     public class MeetingService
     {
         private readonly IMongoCollection<Meeting> _meetings;
@@ -35,7 +44,15 @@ namespace TaskApp.Services
         //    _meetings.ReplaceOne(meeting => meeting.Id == id, meetingIn);
 
         public void Update(string id, Member attendee) {
-            //var filter = Builders<Meeting>.Filter.Eq(meeting => meeting.Id, id);
+            var meeting = _meetings.Find<Meeting>(meeting => meeting.Id == id).FirstOrDefault();
+            if(meeting == null)
+            {
+                throw new MeetingNotFoundException();
+            }
+            if(meeting.Attendees.Count >= 24)
+            {
+                throw new MeetingFullException();
+            }
             var filter = Builders<Meeting>.Filter.Where(meeting => meeting.Id == id && meeting.Attendees.Count <= 24);
             var update = Builders<Meeting>.Update.Push("Attendees", attendee);
             _meetings.FindOneAndUpdate(filter, update);

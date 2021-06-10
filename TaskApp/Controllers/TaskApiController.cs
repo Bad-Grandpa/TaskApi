@@ -64,13 +64,27 @@ namespace TaskApp.Controllers
         [HttpPut("{id:length(24)}")]
         public IActionResult Update(string id, Member attendee)
         {
-            var meeting = _meetingService.Get(id);
-            if (meeting == null)
+            try
+            {
+                //var meeting = _meetingService.Get(id);
+                //if (meeting == null)
+                //{
+                //    return NotFound();
+                //}
+                _meetingService.Update(id, attendee);
+            }
+            catch(MeetingNotFoundException)
             {
                 return NotFound();
             }
-            _meetingService.Update(id, attendee);
-
+            catch (MeetingFullException)
+            {
+                return BadRequest();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
